@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# testing
+coverage/
+
+# next.js
+frontend/.next/
+frontend/out/
+
+# backend builds
+backend/dist/
+
+# production/build
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# databases
+*.db
+*.sqlite
+*.sqlite-journal
+
+# typescript
+*.tsbuildinfo
+frontend/next-env.d.ts
