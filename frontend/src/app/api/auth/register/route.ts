@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateSalt, hashPassword, createToken } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -16,11 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (!db) {
-      return NextResponse.json({ success: false, error: 'Database binding unavailable' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Database binding unavailable. Please ensure D1 binding "DB" is attached in Cloudflare Pages.' }, { status: 500 });
     }
 
     // Check existing user
@@ -53,7 +53,8 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err: unknown) {
+    console.error('Registration API error:', err);
     const msg = err instanceof Error ? err.message : 'Registration failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return NextResponse.json({ success: false, error: msg }, { status: 400 });
   }
 }

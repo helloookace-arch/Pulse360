@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -9,9 +10,7 @@ export async function POST(request: Request) {
     const sessionToken = `token-${crypto.randomUUID()}`;
     const id = crypto.randomUUID();
 
-    // Access Cloudflare D1 binding if available (env.DB)
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       await db.prepare(
@@ -25,9 +24,10 @@ export async function POST(request: Request) {
       sessionId: id,
       district
     });
-  } catch {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Session creation failed';
     return NextResponse.json(
-      { success: false, error: error.message || 'Session creation failed' },
+      { success: false, error: msg },
       { status: 500 }
     );
   }

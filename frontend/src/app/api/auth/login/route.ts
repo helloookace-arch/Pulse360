@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { hashPassword, createToken } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = (process.env.DB || (globalThis as any).DB) as any;
+    const db = getD1();
 
     if (!db) {
       if (identifier === 'admin' || identifier === 'admin@pulse360.rw') {
@@ -65,6 +66,6 @@ export async function POST(request: Request) {
     return response;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Login failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return NextResponse.json({ success: false, error: msg }, { status: 400 });
   }
 }
