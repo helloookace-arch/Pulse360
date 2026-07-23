@@ -348,10 +348,33 @@ export default function ClientShell({ children }: { children: React.ReactNode })
           
           {/* Social media grid */}
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"><Facebook className="w-4 h-4" /></a>
-            <a href="#" className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"><Instagram className="w-4 h-4" /></a>
-            <a href="#" className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"><Twitter className="w-4 h-4" /></a>
-            <a href="#" className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"><Youtube className="w-4 h-4" /></a>
+            <a 
+              href="https://www.facebook.com/share/1Bp3sQ9oBv/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+              title="Pulse360 Facebook"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a 
+              href="https://www.instagram.com/rc.pulse360?igsh=MWU3d3p1ZDNhOWtqbw==" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+              title="Pulse360 Instagram"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a 
+              href="https://x.com/pulse360v" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+              title="Pulse360 X (Twitter)"
+            >
+              <Twitter className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </footer>
