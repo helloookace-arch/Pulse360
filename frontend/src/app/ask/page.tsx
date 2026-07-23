@@ -43,7 +43,7 @@ export default function AskAnonymouslyPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [crisisAlert, setCrisisAlert] = useState(false);
   
-  const socketRef = useRef<any>(null);
+  const socketRef = useRef<ReturnType<typeof io> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentHour = new Date().getHours();
   const isNightTime = currentHour >= 22 || currentHour < 5;
@@ -93,7 +93,7 @@ export default function AskAnonymouslyPage() {
     return () => {
       socket.disconnect();
     };
-  }, [sessionToken, ttsEnabled]);
+  }, [sessionToken, ttsEnabled, speak]);
 
   // Scroll to bottom
   useEffect(() => {

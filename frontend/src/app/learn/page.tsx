@@ -7,7 +7,6 @@ import {
   Bookmark, 
   Clock, 
   Calendar, 
-  ChevronRight, 
   BookOpen, 
   X
 } from 'lucide-react';

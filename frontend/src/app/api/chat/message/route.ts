@@ -1,11 +1,6 @@
-import { dbMock } from './mongoMock';
+import { NextResponse } from 'next/server';
 
-export interface AIResponse {
-  content: string;
-  emotionLabel: string;
-  crisisTriggered: boolean;
-  crisisType: string | null;
-}
+export const runtime = 'edge';
 
 const CRISIS_KEYWORDS_EN = [
   'suicide', 'kill myself', 'end my life', 'harm myself', 'self-harm', 
@@ -17,12 +12,11 @@ const CRISIS_KEYWORDS_RW = [
   'gusenya ubuzima', 'nshaka gupfa'
 ];
 
-export async function processAIChat(
+function processAIChat(
   message: string,
   isAskForFriend: boolean,
-  sessionId: string,
   currentHour: number = new Date().getHours()
-): Promise<AIResponse> {
+) {
   const contentLower = message.toLowerCase();
   
   // 1. Detect Crisis Keywords
@@ -48,8 +42,6 @@ export async function processAIChat(
   // 4. Handle 2AM Crisis Mode (Between 10 PM and 5 AM)
   const isNightCrisisMode = currentHour >= 22 || currentHour < 5;
 
-  // If OpenAI API key is set, we could attempt to call it, but we also want a very robust mock
-  // Let's implement the mock generator
   let responseText = '';
 
   if (lang === 'rw') {
@@ -66,7 +58,6 @@ export async function processAIChat(
           responseText += 'Nyamuneka ubabwire ko dushobora kubafasha mu buryo buhishwe kuri Pulse360. Ese ni ibiki bikeneye ibisobanuro kurushaho kugira ngo tugufashe kumufasha?';
         }
       } else {
-        // Self counseling
         if (isNightCrisisMode) {
           responseText = '[2AM Crisis Mode] Mwaramutse/Mwiriwe, uraho muri iri joro. Umutekano wawe n’ubuzima bwawe nicyo gishyizwe imbere. ';
         } else {
@@ -85,7 +76,6 @@ export async function processAIChat(
       }
     }
   } else {
-    // English responses
     if (crisisTriggered) {
       responseText = 'I hear how much pain you are in right now, and I want you to know you do not have to carry this alone. Please connect with someone who can support you. You can call the Rwanda national emergency hotlines at 114 or 112 immediately. They are free, confidential, and active 24/7. Pulse360 cares about your safety and well-being.';
     } else {
@@ -124,4 +114,65 @@ export async function processAIChat(
     crisisTriggered,
     crisisType
   };
+}
+
+export async function POST(request: Request) {
+  try {
+    const { sessionToken, message, isAskForFriend } = await request.json();
+
+    if (!sessionToken || !message) {
+      return NextResponse.json(
+        { success: false, error: 'Session token and message content required.' },
+        { status: 400 }
+      );
+    }
+
+    const currentHour = new Date().getHours();
+    const aiResult = processAIChat(message, !!isAskForFriend, currentHour);
+    const messageId = `msg-${crypto.randomUUID()}`;
+
+    // Cloudflare D1 integration if available
+    // @ts-expect-error - Edge runtime types
+    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    if (db) {
+      // Find session ID
+      const sessionResult = await db.prepare('SELECT id FROM Session WHERE sessionToken = ?').bind(sessionToken).first();
+      const sessionId = sessionResult?.id || sessionToken;
+
+      // Insert User message
+      await db.prepare(
+        'INSERT INTO Message (id, sessionId, role, content) VALUES (?, ?, ?, ?)'
+      ).bind(crypto.randomUUID(), sessionId, 'user', message).run();
+
+      // Insert Bot message
+      await db.prepare(
+        'INSERT INTO Message (id, sessionId, role, content, emotionLabel, crisisTriggered) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(messageId, sessionId, 'assistant', aiResult.content, aiResult.emotionLabel, aiResult.crisisTriggered ? 1 : 0).run();
+
+      if (aiResult.crisisTriggered) {
+        await db.prepare(
+          'INSERT INTO CrisisEvent (id, sessionId, triggerType) VALUES (?, ?, ?)'
+        ).bind(crypto.randomUUID(), sessionId, aiResult.crisisType || 'general_crisis').run();
+        
+        // Cache crisis status in Cloudflare KV for fast dashboard alert lookups
+        const kv = (globalThis as unknown as { PULSE360_KV?: unknown }).PULSE360_KV || process.env.PULSE360_KV;
+        if (kv && kv.put) {
+          await kv.put(`crisis:${sessionId}`, 'true', { expirationTtl: 3600 }).catch(() => {});
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      response: aiResult.content,
+      emotionLabel: aiResult.emotionLabel,
+      crisisTriggered: aiResult.crisisTriggered,
+      messageId
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Chat processing failed' },
+      { status: 500 }
+    );
+  }
 }

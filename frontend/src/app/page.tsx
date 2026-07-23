@@ -1,14 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useApp, BACKEND_URL } from '../components/AppContext';
+import { useApp } from '../components/AppContext';
 import { 
   Heart, 
-  MessageSquare, 
-  BookOpen, 
   Video, 
-  MapPin, 
   Lock,
   Shield, 
   User,
@@ -18,8 +15,7 @@ import {
   HelpCircle,
   LogOut,
   Compass,
-  ArrowRight,
-  Menu
+  ArrowRight
 } from 'lucide-react';
 
 interface Article {

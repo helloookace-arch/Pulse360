@@ -135,7 +135,7 @@ export default function VirtualConsultationPage() {
         setStep('confirmed');
         speak(language === 'en' ? 'Payment approved. Consultation scheduled.' : 'Kwishyura byemejwe. Gahunda yateguwe.');
       }
-    } catch (e) {
+    } catch {
       setTimeout(() => {
         setIsPaying(false);
         addConsultationLocally();
@@ -157,12 +157,13 @@ export default function VirtualConsultationPage() {
       setCallTimer(`${mins}:${secs}`);
     }, 1000);
 
-    (window as any).callInterval = interval;
+    (window as unknown as { callInterval: ReturnType<typeof setInterval> }).callInterval = interval;
   };
 
   const handleEndCall = () => {
-    if ((window as any).callInterval) {
-      clearInterval((window as any).callInterval);
+    const w = window as unknown as { callInterval?: ReturnType<typeof setInterval> };
+    if (w.callInterval) {
+      clearInterval(w.callInterval);
     }
     setStep('specialty');
     setSelectedCounselor(null);
@@ -316,7 +317,7 @@ export default function VirtualConsultationPage() {
                       <button
                         key={prov.key}
                         type="button"
-                        onClick={() => setPaymentProvider(prov.key as any)}
+                        onClick={() => setPaymentProvider(prov.key as 'MTN' | 'Airtel')}
                         className={`py-3 rounded-xl border text-xs font-bold text-center transition ${
                           active ? prov.active : `bg-white ${prov.border} text-slate-400`
                         }`}

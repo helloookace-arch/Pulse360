@@ -9,9 +9,7 @@ import {
   X,
   User,
   Heart,
-  Phone,
   Languages,
-  Eye,
   Type,
   Facebook,
   Instagram,
@@ -27,9 +25,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     sessionId,
     speak,
     fontSize,
-    setFontSize,
-    contrast,
-    setContrast
+    setFontSize
   } = useApp();
 
   const [mobileOpen, setMobileOpen] = useState(false);

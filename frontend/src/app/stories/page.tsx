@@ -131,7 +131,7 @@ export default function CommunityStoriesPage() {
           text: data.error || (language === 'en' ? 'Moderation failed: Content violates community guidelines.' : 'Moderation yanze: Ubuhamya burimo amagambo atemewe.')
         });
       }
-    } catch (err) {
+    } catch {
       setIsSubmitting(false);
       const isModerate = newContent.toLowerCase().includes('spam') || newContent.toLowerCase().includes('http') || newContent.length < 10;
       

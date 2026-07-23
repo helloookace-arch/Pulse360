@@ -9,7 +9,6 @@ import {
   Eye, 
   Type, 
   Hand, 
-  Sparkles,
   Play,
   Info
 } from 'lucide-react';
@@ -42,7 +41,7 @@ export default function AccessibilityHubPage() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [simulationRunning, activeSimulatedKey, language]);
+  }, [simulationRunning, activeSimulatedKey, language, speak]);
 
   const toggleSimulation = () => {
     setSimulationRunning(!simulationRunning);
