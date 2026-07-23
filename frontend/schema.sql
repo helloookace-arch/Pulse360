@@ -111,4 +111,12 @@ INSERT OR IGNORE INTO Clinic (id, name, lat, lng, address, phone, services, hour
 -- Initial Seed Data: Stories
 INSERT OR IGNORE INTO Story (id, content, category, likes, status, districtHash) VALUES
 ('story-1', 'I used to struggle with severe anxiety before my exams. Finding Pulse360 helped me learn relaxation techniques anonymously, and my grades have actually improved. It is great to know I am not alone.', 'Mental Health', 24, 'approved', 'Kigali_Nyarugenge'),
-('story-2', 'Kuganira ku buzima bw’imyororokere n’ababyeyi bacu biracyari ikizira mu miryango yacu. Pulse360 yampaye amakuru mazima yo kwirinda indwara n’inda zitateganijwe nta pfunwe.', 'Reproductive Health', 42, 'approved', 'Rubavu_Gisenyi');
+('story-2', 'Kuganira ku buzima bw’imyororokere n’ababyeyi bacu biracyari ikizira mu miryango yacu. Pulse360 yampaye amakuru mazima yo kwirinda indwara n’inda zitateganijwe nta pfunwe.', 'Reproductive Health', 42, 'approved', 'Rubavu_Gisenyi'),
+('story-3', 'I am looking for youth-friendly counseling in Gasabo. Does anyone know if there are free anonymous hotlines?', 'Mental Health', 5, 'pending', 'Kigali_Gasabo'),
+('story-4', 'This is spam message advertising unrelated commercial links. http://spam-link.com', 'Wellness', 0, 'rejected', 'Kigali_Nyarugenge'),
+('story-5', 'Gukora siporo buri gitondo byamfashije kurenga agahinda kenshi nahuraga nako mu kazi. Turangurure ubuzima bwiza!', 'Wellness', 12, 'pending', 'Kicukiro_Kigali');
+
+-- Initial Seed Data: Users
+INSERT OR IGNORE INTO User (id, username, email, passwordHash, salt, role) VALUES
+('user_1784835226286', 'admin', 'admin@pulse360.rw', '5a3f5ee2b23b8c9fdc616774fdb6e56327b3bf711471a1dad1f385cdb43467a4', 'aed7cbf89ec09288587cef5d77632fe4', 'admin');
+
