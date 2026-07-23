@@ -3,15 +3,13 @@ compatibility_date = "2026-07-15"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
-# Note: Configure D1 and KV bindings in the Cloudflare Pages Dashboard (Settings > Bindings)
-# or replace these placeholder IDs with real IDs generated via `npx wrangler kv namespace create` / `npx wrangler d1 create`.
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "pulse360-db"
+database_id = "21db3ceb-def9-46bf-9a08-d3d390e7e5f4"
 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "pulse360-db"
-# database_id = "your-actual-d1-uuid-here"
-
-# [[kv_namespaces]]
-# binding = "PULSE360_KV"
-# id = "00000000000000000000000000000000" # 32-char hex string
-
+# Cloudflare KV Namespace Binding
+[[kv_namespaces]]
+binding = "PULSE360_KV"
+id = "6c0fd72d5e5e4320818c1b0741f00a93"
