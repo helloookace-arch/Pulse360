@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from './AppContext';
+import AuthModal from './AuthModal';
 import {
   Menu,
   X,
@@ -14,8 +15,17 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Youtube
+  Youtube,
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
+
+interface AuthUser {
+  userId: string;
+  username: string;
+  email: string;
+  role: 'user' | 'admin';
+}
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,8 +39,27 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   } = useApp();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
-  const menuItems = [
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.user) {
+          setAuthUser(data.user);
+        }
+      })
+      .catch(() => setAuthUser(null));
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setAuthUser(null);
+    speak(language === 'en' ? 'Logged out successfully' : 'Uzasohotse neza');
+  };
+
+  const baseMenuItems = [
     { href: '/', labelEn: 'Home', labelRw: 'Ahabanza' },
     { href: '/learn', labelEn: 'Learn', labelRw: 'Soma' },
     { href: '/stories', labelEn: 'Stories', labelRw: 'Ubuhamya' },
@@ -39,6 +68,10 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     { href: '/clinics', labelEn: 'Find a Clinic', labelRw: 'Shaka Ivuriro' },
     { href: '/accessibility', labelEn: 'Accessibility', labelRw: 'Aboroherwa' }
   ];
+
+  const menuItems = authUser?.role === 'admin' 
+    ? [...baseMenuItems, { href: '/admin', labelEn: 'Admin Panel', labelRw: 'Admin Panel' }]
+    : baseMenuItems;
 
   const anonymousHash = sessionId ? sessionId.substring(0, 5).toUpperCase() : 'PEER';
 
@@ -78,7 +111,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                   active 
                     ? 'text-[#7c3aed] bg-[#7c3aed]/5'
-                    : 'text-[#625985] hover:text-[#7c3aed] hover:bg-[#f7f6fc]'
+                    : item.href === '/admin' ? 'text-purple-700 bg-purple-100 hover:bg-purple-200' : 'text-[#625985] hover:text-[#7c3aed] hover:bg-[#f7f6fc]'
                 }`}
                 onMouseEnter={() => readItem(`Go to ${item.labelEn}`, `Komeza kuri ${item.labelRw}`)}
               >
@@ -111,17 +144,48 @@ export default function ClientShell({ children }: { children: React.ReactNode })
             <Type className="w-4 h-4" />
           </button>
 
-          {/* User profile dropdown simulator */}
-          <div 
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] cursor-pointer hover:bg-[#edeaf5]/20 transition"
-            title={`Anonymous Profile @${anonymousHash}`}
-            onMouseEnter={() => readItem(`Profile ID ${anonymousHash}`, `Uwirabura nimero ${anonymousHash}`)}
-          >
-            <div className="w-6 h-6 rounded-full bg-[#7c3aed]/10 flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-[#7c3aed]" />
+          {/* Account indicator / Login trigger */}
+          {authUser ? (
+            <div className="flex items-center gap-2">
+              <div 
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 cursor-pointer"
+                title={`Logged in as ${authUser.username} (${authUser.role})`}
+              >
+                <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
+                  {authUser.username.substring(0, 2).toUpperCase()}
+                </div>
+                <span className="text-[10px] font-black text-purple-900">@{authUser.username}</span>
+                {authUser.role === 'admin' && (
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-xl bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition"
+                title="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-            <span className="text-[10px] font-black text-[#2d1c66]">@{anonymousHash}</span>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div 
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5]"
+                title={`Anonymous Peer @${anonymousHash}`}
+              >
+                <div className="w-5 h-5 rounded-full bg-[#7c3aed]/10 flex items-center justify-center">
+                  <User className="w-3 h-3 text-[#7c3aed]" />
+                </div>
+                <span className="text-[9px] font-bold text-[#2d1c66]">@{anonymousHash}</span>
+              </div>
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs transition shadow-sm"
+              >
+                {language === 'en' ? 'Sign In / Register' : 'Injira / Iyandikishe'}
+              </button>
+            </div>
+          )}
 
         </div>
 
@@ -227,6 +291,13 @@ export default function ClientShell({ children }: { children: React.ReactNode })
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal Overlay */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+        onSuccess={(user) => setAuthUser(user)} 
+      />
 
     </div>
   );

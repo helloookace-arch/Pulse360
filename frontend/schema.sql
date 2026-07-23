@@ -80,6 +80,19 @@ CREATE TABLE IF NOT EXISTS CrisisEvent (
   FOREIGN KEY (sessionId) REFERENCES Session(id)
 );
 
+-- 8. User Table (Authentication & RBAC)
+CREATE TABLE IF NOT EXISTS User (
+  id TEXT PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  passwordHash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  role TEXT DEFAULT 'user',
+  avatar TEXT,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Initial Seed Data: Articles
 INSERT OR IGNORE INTO Article (id, title, category, body, tags, language, readingTime, thumbnail) VALUES
 ('art-1', 'Understanding Anxiety: A Guide for Young Rwandans', 'Mental Health', 'Anxiety is a natural response to stress, but when it becomes overwhelming, it can affect your daily life. In Rwanda, young people face academic pressure, unemployment concerns, and social expectations. Understanding your triggers, practicing deep breathing, and talking to a counselor anonymously can make a huge difference. Remember, mental health is health, and seeking help is a strength.', '["anxiety", "mental health", "youth", "mindfulness"]', 'English', '4 min read', 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=500&auto=format&fit=crop'),
