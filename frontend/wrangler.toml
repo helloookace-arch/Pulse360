@@ -7,7 +7,7 @@ pages_build_output_dir = ".vercel/output/static"
 [[d1_databases]]
 binding = "DB"
 database_name = "pulse360-db"
-database_id = "21db3ceb-def9-46bf-9a08-d3d390e7e5f4"
+database_id = "1e508f10-69f9-4c09-9384-1d7f6e57e5b0"
 
 # Cloudflare KV Namespace Binding
 [[kv_namespaces]]
