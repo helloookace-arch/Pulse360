@@ -207,8 +207,23 @@ export default function ClientShell({ children }: { children: React.ReactNode })
 
         </div>
 
-        {/* Mobile menu hamburger button */}
+        {/* Mobile menu action controls */}
         <div className="lg:hidden flex items-center gap-2">
+          {/* Mobile User Profile / Login trigger icon */}
+          <button
+            onClick={() => {
+              if (authUser) {
+                setMobileOpen(true);
+              } else {
+                setAuthModalOpen(true);
+              }
+            }}
+            className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[#7c3aed] flex items-center justify-center"
+            title={authUser ? `@${authUser.username}` : 'Sign In / Register'}
+          >
+            <User className="w-5 h-5" />
+          </button>
+
           <button 
             onClick={toggleLanguage}
             className="px-2.5 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[10px] font-bold text-[#2d1c66]"
@@ -235,24 +250,55 @@ export default function ClientShell({ children }: { children: React.ReactNode })
             <X className="w-5 h-5" />
           </button>
 
-          <nav className="space-y-2">
-            {menuItems.map(item => {
-              const label = language === 'en' ? item.labelEn : item.labelRw;
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold ${
-                    active ? 'bg-[#7c3aed]/5 text-[#7c3aed] border border-[#7c3aed]/10' : 'text-[#625985]'
-                  }`}
+          <div className="space-y-4">
+            {/* Mobile Auth Button or Logged in User Bar */}
+            {authUser ? (
+              <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#7c3aed] flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    {authUser.username.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-[#2d1c66]">@{authUser.username}</p>
+                    <p className="text-[10px] text-[#7c3aed] font-bold uppercase">{authUser.role}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setMobileOpen(false); handleLogout(); }}
+                  className="px-3 py-1.5 rounded-xl bg-red-100 text-red-600 text-xs font-bold hover:bg-red-200 transition"
                 >
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
+                  Log Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setMobileOpen(false); setAuthModalOpen(true); }}
+                className="w-full py-3 rounded-2xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition"
+              >
+                <User className="w-4 h-4" />
+                <span>{language === 'en' ? 'Sign In / Register' : 'Injira / Iyandikishe'}</span>
+              </button>
+            )}
+
+            <nav className="space-y-2">
+              {menuItems.map(item => {
+                const label = language === 'en' ? item.labelEn : item.labelRw;
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold ${
+                      active ? 'bg-[#7c3aed]/5 text-[#7c3aed] border border-[#7c3aed]/10' : 'text-[#625985]'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
           <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-center space-y-3">
             <p className="text-xs font-bold text-red-600 uppercase">{language === 'en' ? 'Helpline Assistance' : 'Ubutabazi bw’Imirongo'}</p>
