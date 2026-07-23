@@ -12,4 +12,4 @@ database_id = "21db3ceb-def9-46bf-9a08-d3d390e7e5f4"
 # Cloudflare KV Namespace Binding
 [[kv_namespaces]]
 binding = "PULSE360_KV"
-id = "6c0fd72d5e5e4320818c1b0741f00a93"
+id = "f7fa5a876b6f4730b6ec8c5a7439be24"
