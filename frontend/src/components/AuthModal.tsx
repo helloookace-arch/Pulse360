@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from './AppContext';
-import { User, Lock, Mail, ShieldCheck, X, AlertCircle } from 'lucide-react';
+import { User, Lock, Mail, X, AlertCircle } from 'lucide-react';
 
 interface UserData {
   userId: string;
@@ -25,8 +25,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminKey, setAdminKey] = useState('');
   
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +39,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     const endpoint = tab === 'login' ? '/api/auth/login' : '/api/auth/register';
     const payload = tab === 'login' 
       ? { identifier, password } 
-      : { username, email, password, adminKey: isAdmin ? adminKey : undefined };
+      : { username, email, password };
 
     try {
       const res = await fetch(endpoint, {
@@ -179,35 +177,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             />
           </div>
 
-          {tab === 'register' && (
-            <div className="space-y-3 border-t border-[#edeaf5] pt-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#2d1c66] flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-purple-600" /> Admin Registration?
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsAdmin(!isAdmin)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors ${isAdmin ? 'bg-purple-600' : 'bg-slate-300'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAdmin ? 'translate-x-4' : 'translate-x-0'}`} />
-                </button>
-              </div>
 
-              {isAdmin && (
-                <div className="space-y-1">
-                  <input
-                    type="password"
-                    value={adminKey}
-                    onChange={(e) => setAdminKey(e.target.value)}
-                    placeholder="Enter Secret Admin Passkey"
-                    className="w-full px-3.5 py-2 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 focus:outline-none placeholder-purple-300"
-                  />
-                  <p className="text-[9px] text-purple-600 font-semibold">Passkey default: pulse360_admin_passkey_2026</p>
-                </div>
-              )}
-            </div>
-          )}
 
           <button
             type="submit"

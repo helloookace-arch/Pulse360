@@ -40,7 +40,7 @@ export default function EducationHubPage() {
     const fetchArticles = async () => {
       try {
         const langFilter = language === 'en' ? 'English' : 'Kinyarwanda';
-        const url = new URL(`${BACKEND_URL}/articles`);
+        const url = new URL(`${BACKEND_URL}/articles`, window.location.origin);
         url.searchParams.append('language', langFilter);
         
         if (activeCategory !== 'All') {

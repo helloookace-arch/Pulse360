@@ -41,6 +41,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [broadcastNotice, setBroadcastNotice] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -51,6 +52,15 @@ export default function ClientShell({ children }: { children: React.ReactNode })
         }
       })
       .catch(() => setAuthUser(null));
+
+    fetch('/api/settings/public')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings?.broadcastNotice) {
+          setBroadcastNotice(data.settings.broadcastNotice);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleLogout = async () => {
@@ -82,6 +92,14 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   return (
     <div className="flex flex-col min-h-screen bg-[#f7f6fc] text-[#493f6d]">
       
+      {/* Broadcast Notice Banner */}
+      {broadcastNotice && (
+        <div className="bg-gradient-to-r from-purple-700 via-indigo-600 to-pink-600 text-white text-[11px] font-bold py-2 px-4 text-center shadow-inner flex items-center justify-center gap-2">
+          <span className="px-2 py-0.5 rounded-full bg-white/20 uppercase text-[9px] tracking-wider">Announcement</span>
+          <span>{broadcastNotice}</span>
+        </div>
+      )}
+
       {/* Top Header Navigation */}
       <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-[#edeaf5] px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
         {/* Logo and Brand */}

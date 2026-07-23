@@ -341,26 +341,55 @@ export default function DashboardPage() {
           {/* Dashboard Left Sidebar Menu */}
           <div className="lg:col-span-3 space-y-1 bg-[#f7f6fc] p-3 rounded-2xl border border-[#edeaf5] self-start">
             {[
-              { label: 'Dashboard', icon: User, active: true },
-              { label: 'My Consultations', icon: Video },
-              { label: 'Saved Articles', icon: BookMarked },
-              { label: 'My Questions', icon: FileText },
-              { label: 'Settings', icon: HelpCircle },
-              { label: 'Logout', icon: LogOut }
+              { label: 'Dashboard', icon: User, active: true, href: '/' },
+              { label: 'My Consultations', icon: Video, href: '/consultation' },
+              { label: 'Saved Articles', icon: BookMarked, href: '/learn' },
+              { label: 'My Questions', icon: FileText, href: '/ask' },
+              { label: 'Settings', icon: HelpCircle, action: 'settings' },
+              { label: 'Logout', icon: LogOut, action: 'logout' }
             ].map((menu, i) => {
               const Icon = menu.icon;
+              const content = (
+                <>
+                  <Icon className="w-4 h-4" />
+                  <span>{menu.label}</span>
+                </>
+              );
+              
+              const className = `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-xs font-bold transition duration-200 ${
+                menu.active 
+                  ? 'bg-[#7c3aed] text-white shadow-sm' 
+                  : 'text-[#625985] hover:text-[#7c3aed] hover:bg-[#edeaf5]/40'
+              }`;
+
+              if (menu.href) {
+                return (
+                  <Link 
+                    key={i} 
+                    href={menu.href} 
+                    className={className}
+                    onClick={() => speak(menu.label)}
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
               return (
                 <button
                   key={i}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-xs font-bold transition duration-200 ${
-                    menu.active 
-                      ? 'bg-[#7c3aed] text-white shadow-sm' 
-                      : 'text-[#625985] hover:text-[#7c3aed] hover:bg-[#edeaf5]/40'
-                  }`}
-                  onClick={() => readText(menu.label)}
+                  className={className}
+                  onClick={() => {
+                    speak(menu.label);
+                    if (menu.action === 'logout') {
+                      localStorage.clear();
+                      window.location.reload();
+                    } else if (menu.action === 'settings') {
+                      document.getElementById('privacy-settings')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{menu.label}</span>
+                  {content}
                 </button>
               );
             })}
@@ -385,7 +414,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Privacy toggle settings */}
-            <div className="p-5 rounded-2xl bg-[#f7f6fc] border border-[#edeaf5] space-y-4 text-left">
+            <div id="privacy-settings" className="p-5 rounded-2xl bg-[#f7f6fc] border border-[#edeaf5] space-y-4 text-left">
               <h4 className="text-xs font-bold text-[#2d1c66] uppercase tracking-wider">Privacy Settings</h4>
               
               <div className="space-y-3">

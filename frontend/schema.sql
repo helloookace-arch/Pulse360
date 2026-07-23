@@ -120,3 +120,18 @@ INSERT OR IGNORE INTO Story (id, content, category, likes, status, districtHash)
 INSERT OR IGNORE INTO User (id, username, email, passwordHash, salt, role) VALUES
 ('user_1784835226286', 'admin', 'admin@pulse360.rw', '5a3f5ee2b23b8c9fdc616774fdb6e56327b3bf711471a1dad1f385cdb43467a4', 'aed7cbf89ec09288587cef5d77632fe4', 'admin');
 
+-- 9. SystemSetting Table (Feature Flags & Platform Controls)
+CREATE TABLE IF NOT EXISTS SystemSetting (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Initial Seed Data: System Settings
+INSERT OR IGNORE INTO SystemSetting (key, value) VALUES
+('aiCrisisAutoEscalation', 'true'),
+('storySubmissionsOpen', 'true'),
+('instantCounselorBooking', 'true'),
+('maintenanceMode', 'false'),
+('broadcastNotice', 'Welcome to Pulse360! 24/7 Confidential Youth Health & Psychological Support.');
+
