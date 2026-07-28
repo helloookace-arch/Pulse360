@@ -116,9 +116,9 @@ INSERT OR IGNORE INTO Story (id, content, category, likes, status, districtHash)
 ('story-4', 'This is spam message advertising unrelated commercial links. http://spam-link.com', 'Wellness', 0, 'rejected', 'Kigali_Nyarugenge'),
 ('story-5', 'Gukora siporo buri gitondo byamfashije kurenga agahinda kenshi nahuraga nako mu kazi. Turangurure ubuzima bwiza!', 'Wellness', 12, 'pending', 'Kicukiro_Kigali');
 
--- Initial Seed Data: Users
-INSERT OR IGNORE INTO User (id, username, email, passwordHash, salt, role) VALUES
-('user_1784835226286', 'admin', 'admin@pulse360.rw', '5a3f5ee2b23b8c9fdc616774fdb6e56327b3bf711471a1dad1f385cdb43467a4', 'aed7cbf89ec09288587cef5d77632fe4', 'admin');
+-- Initial Seed Data: Users (password: Admin@Pulse360)
+INSERT OR REPLACE INTO User (id, username, email, passwordHash, salt, role) VALUES
+('user_admin_pulse360', 'admin', 'admin@pulse360.rw', '81ae06d2cdc39e0fd9be3d670ad506832acea58c50f55255713dee3f30feacfd', '8f2e5976919df833b7c397af46aae2a2', 'admin');
 
 -- 9. SystemSetting Table (Feature Flags & Platform Controls)
 CREATE TABLE IF NOT EXISTS SystemSetting (

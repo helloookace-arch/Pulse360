@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (!user) {
       const isDemoAdmin =
         (identifier === 'admin' || identifier === 'admin@pulse360.rw') &&
-        (password === 'admin' || password === 'admin123' || password === 'pulse360admin');
+        (password === 'Admin@Pulse360' || password === 'admin' || password === 'admin123' || password === 'pulse360admin');
 
       if (isDemoAdmin) {
         const userPayload = {
