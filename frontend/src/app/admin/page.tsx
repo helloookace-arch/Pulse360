@@ -158,6 +158,113 @@ interface AuditLogItem {
   createdAt: string;
 }
 
+function AdminLoginPage({ onSuccess }: { onSuccess: () => void }) {
+  const [identifier, setIdentifier] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, password }),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (data.success && (data.user?.role === "admin" || data.user?.role === "super_admin")) {
+        onSuccess();
+      } else if (data.success) {
+        setError("Your account does not have administrator privileges.");
+      } else {
+        setError(data.error || "Invalid credentials. Please try again.");
+      }
+    } catch {
+      setLoading(false);
+      setError("Network error. Please check your connection.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f7f6fc] via-[#edeaf5] to-[#f0ebff] px-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#7c3aed] to-[#ec4899] flex items-center justify-center shadow-lg shadow-[#7c3aed]/20">
+            <ShieldCheck className="w-7 h-7 text-white" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-extrabold text-[#2d1c66]">Pulse360 Admin</h1>
+            <p className="text-xs text-[#7c3aed] font-semibold tracking-wide uppercase mt-0.5">Command Center</p>
+          </div>
+        </div>
+
+        {/* Card */}
+        <Card className="rounded-3xl border border-[#edeaf5] shadow-2xl bg-white/90 backdrop-blur p-8 space-y-5">
+          <div className="text-center space-y-1 pb-1">
+            <h2 className="font-extrabold text-base text-[#2d1c66]">Sign in to Admin Panel</h2>
+            <p className="text-xs text-slate-400">Enter your administrator credentials below</p>
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100">
+              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700 font-medium leading-relaxed">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2d1c66]">Username or Email</label>
+              <input
+                id="admin-identifier"
+                type="text"
+                required
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="admin or admin@pulse360.rw"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-sm text-[#2d1c66] placeholder:text-slate-300 focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/10 transition"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2d1c66]">Password</label>
+              <input
+                id="admin-password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-sm text-[#2d1c66] focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/10 transition"
+              />
+            </div>
+
+            <button
+              id="admin-login-submit"
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6] hover:from-[#6d28d9] hover:to-[#7c3aed] text-white text-sm font-bold shadow-md shadow-[#7c3aed]/20 transition disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              {loading ? "Authenticating…" : "Sign In"}
+            </button>
+          </form>
+
+          <div className="pt-1 border-t border-[#edeaf5] flex items-center justify-between">
+            <p className="text-[10px] text-slate-400">Default: <span className="font-mono font-semibold text-[#7c3aed]">admin / admin</span></p>
+            <Link href="/" className="text-[10px] text-slate-400 hover:text-[#7c3aed] font-medium transition">← Return Home</Link>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboardPage() {
   const [unauthorized, setUnauthorized] = useState(false);
   const [adminRole, setAdminRole] = useState<
@@ -887,51 +994,7 @@ export default function AdminDashboardPage() {
 
   if (unauthorized) {
     return (
-      <Card className="max-w-md mx-auto my-12 p-8 rounded-3xl border-none shadow-xl bg-white text-center space-y-4">
-        <Lock className="w-12 h-12 text-red-500 mx-auto animate-pulse" />
-        <h3 className="text-lg font-extrabold text-[#2d1c66]">
-          Admin Access Required
-        </h3>
-        <p className="text-xs text-slate-400">
-          You must be logged in with an Administrator account to access the
-          Pulse360 Command Center.
-        </p>
-        <div className="flex flex-col gap-3 pt-2">
-          <Button
-            onClick={async () => {
-              try {
-                const res = await fetch("/api/auth/login", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    identifier: "admin",
-                    password: "admin",
-                  }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  window.location.reload();
-                } else {
-                  alert(data.error || "Login failed");
-                }
-              } catch (err) {
-                console.error(err);
-              }
-            }}
-            className="w-full h-11 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-bold shadow-md shadow-[#7c3aed]/15 flex items-center justify-center gap-2"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            Quick Sign In as Administrator
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-11 rounded-xl bg-[#f7f6fc] text-slate-600 text-xs font-bold hover:bg-slate-100 transition border-[#edeaf5]"
-            asChild
-          >
-            <Link href="/">Return Home</Link>
-          </Button>
-        </div>
-      </Card>
+      <AdminLoginPage onSuccess={() => { setUnauthorized(false); fetchAllData(); }} />
     );
   }
 
