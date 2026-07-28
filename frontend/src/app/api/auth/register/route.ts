@@ -24,13 +24,30 @@ export async function POST(request: Request) {
     const db = getD1();
 
     if (!db) {
-      return NextResponse.json({ success: false, error: 'Database binding unavailable. Please ensure D1 binding "DB" is attached in Cloudflare Pages.' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: 'Database not available. Please try again shortly.' },
+        { status: 503 }
+      );
     }
 
-    const existing = await db
-      .prepare('SELECT id FROM User WHERE email = ? OR username = ?')
-      .bind(email, username)
-      .first<ExistingUserRecord>();
+    // Check for existing user
+    let existing: ExistingUserRecord | null = null;
+    try {
+      existing = await db
+        .prepare('SELECT id FROM User WHERE email = ? OR username = ?')
+        .bind(email, username)
+        .first<ExistingUserRecord>();
+    } catch (dbErr: unknown) {
+      const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+      if (msg.includes('no such table') || msg.includes('SQLITE_ERROR')) {
+        return NextResponse.json(
+          { success: false, error: 'Service is initializing. Please try again in a moment.' },
+          { status: 503 }
+        );
+      }
+      throw dbErr;
+    }
+
     if (existing) {
       return NextResponse.json({ success: false, error: 'Username or email already exists' }, { status: 400 });
     }
@@ -38,13 +55,24 @@ export async function POST(request: Request) {
     const salt = generateSalt();
     const passwordHash = await hashPassword(password, salt);
     const userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    
-    // Assign admin role if secret key matches or if email ends with @pulse360.admin
+
+    // Assign admin role if secret key matches
     const role = (adminKey && adminKey === 'pulse360_admin_passkey_2026') ? 'admin' : 'user';
 
-    await db.prepare('INSERT INTO User (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(userId, username, email, passwordHash, salt, role)
-      .run();
+    try {
+      await db.prepare('INSERT INTO User (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(userId, username, email, passwordHash, salt, role)
+        .run();
+    } catch (dbErr: unknown) {
+      const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+      if (msg.includes('no such table') || msg.includes('SQLITE_ERROR')) {
+        return NextResponse.json(
+          { success: false, error: 'Service is initializing. Please try again in a moment.' },
+          { status: 503 }
+        );
+      }
+      throw dbErr;
+    }
 
     const userPayload = { userId, username, email, role: role as 'user' | 'admin' };
     const token = await createToken(userPayload);
@@ -59,6 +87,7 @@ export async function POST(request: Request) {
   } catch (err: unknown) {
     console.error('Registration API error:', err);
     const msg = err instanceof Error ? err.message : 'Registration failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 400 });
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
+
