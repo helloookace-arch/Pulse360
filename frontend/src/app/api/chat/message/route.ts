@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../../lib/db';
+import { getKV } from '../../../../lib/kv';
 
 export const runtime = 'edge';
 
@@ -132,11 +134,10 @@ export async function POST(request: Request) {
     const messageId = `msg-${crypto.randomUUID()}`;
 
     // Cloudflare D1 integration if available
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
     if (db) {
       // Find session ID
-      const sessionResult = await db.prepare('SELECT id FROM Session WHERE sessionToken = ?').bind(sessionToken).first();
+      const sessionResult = await db.prepare('SELECT id FROM Session WHERE sessionToken = ?').bind(sessionToken).first<{ id?: string }>();
       const sessionId = sessionResult?.id || sessionToken;
 
       // Insert User message
@@ -155,8 +156,8 @@ export async function POST(request: Request) {
         ).bind(crypto.randomUUID(), sessionId, aiResult.crisisType || 'general_crisis').run();
         
         // Cache crisis status in Cloudflare KV for fast dashboard alert lookups
-        const kv = (globalThis as unknown as { PULSE360_KV?: unknown }).PULSE360_KV || process.env.PULSE360_KV;
-        if (kv && kv.put) {
+        const kv = getKV();
+        if (kv) {
           await kv.put(`crisis:${sessionId}`, 'true', { expirationTtl: 3600 }).catch(() => {});
         }
       }
@@ -169,9 +170,10 @@ export async function POST(request: Request) {
       crisisTriggered: aiResult.crisisTriggered,
       messageId
     });
-  } catch {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Chat processing failed';
     return NextResponse.json(
-      { success: false, error: error.message || 'Chat processing failed' },
+      { success: false, error: message },
       { status: 500 }
     );
   }

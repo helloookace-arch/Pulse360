@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useApp } from './AppContext';
-import AuthModal from './AuthModal';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useApp } from "./AppContext";
+import AuthModal from "./AuthModal";
 import {
   Menu,
   X,
@@ -15,28 +15,25 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Youtube,
   ShieldCheck,
-  LogOut
-} from 'lucide-react';
+  LogOut,
+} from "lucide-react";
 
 interface AuthUser {
   userId: string;
   username: string;
   email: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
 }
 
-export default function ClientShell({ children }: { children: React.ReactNode }) {
+export default function ClientShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
-  const {
-    language,
-    toggleLanguage,
-    sessionId,
-    speak,
-    fontSize,
-    setFontSize
-  } = useApp();
+  const { language, toggleLanguage, speak, fontSize, setFontSize } =
+    useApp();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
@@ -44,18 +41,18 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const [broadcastNotice, setBroadcastNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success && data.user) {
           setAuthUser(data.user);
         }
       })
       .catch(() => setAuthUser(null));
 
-    fetch('/api/settings/public')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/settings/public")
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success && data.settings?.broadcastNotice) {
           setBroadcastNotice(data.settings.broadcastNotice);
         }
@@ -64,186 +61,227 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch("/api/auth/logout", { method: "POST" });
     setAuthUser(null);
-    speak(language === 'en' ? 'Logged out successfully' : 'Uzasohotse neza');
+    speak(language === "en" ? "Logged out successfully" : "Uzasohotse neza");
   };
 
   const baseMenuItems = [
-    { href: '/', labelEn: 'Home', labelRw: 'Ahabanza' },
-    { href: '/learn', labelEn: 'Learn', labelRw: 'Soma' },
-    { href: '/stories', labelEn: 'Stories', labelRw: 'Ubuhamya' },
-    { href: '/ask', labelEn: 'Ask', labelRw: 'Baza' },
-    { href: '/consultation', labelEn: 'Consultation', labelRw: 'Umujyanama' },
-    { href: '/clinics', labelEn: 'Find a Clinic', labelRw: 'Shaka Ivuriro' },
-    { href: '/accessibility', labelEn: 'Accessibility', labelRw: 'Aboroherwa' }
+    { href: "/", labelEn: "Home", labelRw: "Ahabanza" },
+    { href: "/learn", labelEn: "Learn", labelRw: "Soma" },
+    { href: "/stories", labelEn: "Stories", labelRw: "Ubuhamya" },
+    { href: "/ask", labelEn: "Ask", labelRw: "Baza" },
+    { href: "/consultation", labelEn: "Consultation", labelRw: "Umujyanama" },
+    { href: "/clinics", labelEn: "Find a Clinic", labelRw: "Shaka Ivuriro" },
+    { href: "/accessibility", labelEn: "Accessibility", labelRw: "Aboroherwa" },
   ];
 
-  const menuItems = authUser?.role === 'admin' 
-    ? [...baseMenuItems, { href: '/admin', labelEn: 'Admin Panel', labelRw: 'Admin Panel' }]
-    : baseMenuItems;
-
-  const anonymousHash = sessionId ? sessionId.substring(0, 5).toUpperCase() : 'PEER';
+  const menuItems =
+    authUser?.role === "admin"
+      ? [
+          ...baseMenuItems,
+          { href: "/admin", labelEn: "Admin Panel", labelRw: "Admin Panel" },
+        ]
+      : baseMenuItems;
 
   const readItem = (en: string, rw: string) => {
-    speak(language === 'en' ? en : rw);
+    speak(language === "en" ? en : rw);
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f7f6fc] text-[#493f6d]">
-      
+    <div className="app-bg flex flex-col min-h-screen bg-[#f7f6fc] text-[#493f6d]">
       {/* Broadcast Notice Banner */}
       {broadcastNotice && (
         <div className="bg-gradient-to-r from-purple-700 via-indigo-600 to-pink-600 text-white text-[11px] font-bold py-2 px-4 text-center shadow-inner flex items-center justify-center gap-2">
-          <span className="px-2 py-0.5 rounded-full bg-white/20 uppercase text-[9px] tracking-wider">Announcement</span>
+          <span className="px-2 py-0.5 rounded-full bg-white/20 uppercase text-[9px] tracking-wider">
+            Announcement
+          </span>
           <span>{broadcastNotice}</span>
         </div>
       )}
 
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-[#edeaf5] px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
-        {/* Logo and Brand */}
-        <Link 
-          href="/" 
-          className="flex items-center gap-2.5 group"
-          onMouseEnter={() => readItem('Pulse 360, Health Companion', 'Pulse 360, Umufasha w’Ubuzima')}
-        >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#ec4899] flex items-center justify-center shadow-md shadow-[#7c3aed]/15 transition-transform group-hover:scale-105">
-            <Heart className="w-5 h-5 text-white fill-white/10" />
-          </div>
-          <div>
-            <h1 className="font-extrabold text-base tracking-tight text-[#2d1c66]">PULSE 360</h1>
-            <p className="text-[9px] text-[#7c3aed] font-bold tracking-wider leading-none">Your health. Your voice. Our support.</p>
-          </div>
-        </Link>
-
-        {/* Desktop Nav Items */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {menuItems.map(item => {
-            const active = pathname === item.href;
-            const label = language === 'en' ? item.labelEn : item.labelRw;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  active 
-                    ? 'text-[#7c3aed] bg-[#7c3aed]/5'
-                    : item.href === '/admin' ? 'text-purple-700 bg-purple-100 hover:bg-purple-200' : 'text-[#625985] hover:text-[#7c3aed] hover:bg-[#f7f6fc]'
-                }`}
-                onMouseEnter={() => readItem(`Go to ${item.labelEn}`, `Komeza kuri ${item.labelRw}`)}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Right Actions & Profile */}
-        <div className="hidden lg:flex items-center gap-3">
-          
-          {/* Quick Language Toggle */}
-          <button
-            onClick={toggleLanguage}
-            className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] hover:border-[#edeaf5] hover:bg-[#edeaf5]/30 text-[#2d1c66] transition flex items-center gap-1.5"
-            onMouseEnter={() => readItem('Change language', 'Guhindura ururimi')}
+      <header className="sticky top-0 z-40 w-full border-b border-white/50 bg-white/75 backdrop-blur-xl shadow-[0_16px_40px_-34px_rgba(45,28,102,0.5)]">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+          {/* Logo and Brand */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 group"
+            onMouseEnter={() =>
+              readItem(
+                "Pulse 360, Health Companion",
+                "Pulse 360, Umufasha w’Ubuzima",
+              )
+            }
           >
-            <Languages className="w-4 h-4 text-[#ec4899]" />
-            <span className="text-[10px] font-bold">{language.toUpperCase()}</span>
-          </button>
-
-          {/* Quick Size Toggle */}
-          <button
-            onClick={() => setFontSize(fontSize === 'base' ? 'lg' : fontSize === 'lg' ? 'xl' : fontSize === 'xl' ? 'sm' : 'base')}
-            className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] hover:bg-[#edeaf5]/30 text-[#625985] transition"
-            title="Adjust text size"
-            onMouseEnter={() => readItem('Adjust text size', 'Guhindura ingano y’inyuguti')}
-          >
-            <Type className="w-4 h-4" />
-          </button>
-
-          {/* Account indicator / Login trigger */}
-          {authUser ? (
-            <div className="flex items-center gap-2">
-              <div 
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 cursor-pointer"
-                title={`Logged in as ${authUser.username} (${authUser.role})`}
-              >
-                <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
-                  {authUser.username.substring(0, 2).toUpperCase()}
-                </div>
-                <span className="text-[10px] font-black text-purple-900">@{authUser.username}</span>
-                {authUser.role === 'admin' && (
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                )}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-2 rounded-xl bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition"
-                title="Log out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white shadow-md shadow-[#7c3aed]/15 transition-transform group-hover:scale-105 border border-purple-100 flex items-center justify-center p-0.5">
+              <img src="/logo.png" alt="Pulse360 Logo" className="w-full h-full object-contain rounded-full" />
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div 
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5]"
-                title={`Anonymous Peer @${anonymousHash}`}
-              >
-                <div className="w-5 h-5 rounded-full bg-[#7c3aed]/10 flex items-center justify-center">
-                  <User className="w-3 h-3 text-[#7c3aed]" />
-                </div>
-                <span className="text-[9px] font-bold text-[#2d1c66]">@{anonymousHash}</span>
-              </div>
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs transition shadow-sm"
-              >
-                {language === 'en' ? 'Sign In / Register' : 'Injira / Iyandikishe'}
-              </button>
+            <div>
+              <h1 className="font-extrabold text-base tracking-tight text-[#2d1c66]">
+                PULSE 360
+              </h1>
+              <p className="text-[9px] text-[#7c3aed] font-bold tracking-[0.18em] leading-none uppercase">
+                Confidential care for youth
+              </p>
             </div>
-          )}
+          </Link>
 
-        </div>
+          {/* Desktop Nav Items */}
+          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-white/60 bg-white/80 px-2 py-1 shadow-[0_10px_24px_-22px_rgba(45,28,102,0.45)]">
+            {menuItems.map((item) => {
+              const active = pathname === item.href;
+              const label = language === "en" ? item.labelEn : item.labelRw;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
+                    active
+                      ? "text-white bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6] shadow-sm"
+                      : item.href === "/admin"
+                        ? "text-purple-700 bg-purple-100 hover:bg-purple-200"
+                        : "text-[#625985] hover:text-[#7c3aed] hover:bg-[#f7f6fc]"
+                  }`}
+                  onMouseEnter={() =>
+                    readItem(
+                      `Go to ${item.labelEn}`,
+                      `Komeza kuri ${item.labelRw}`,
+                    )
+                  }
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Mobile menu action controls */}
-        <div className="lg:hidden flex items-center gap-2">
-          {/* Mobile User Profile / Login trigger icon */}
-          <button
-            onClick={() => {
-              if (authUser) {
-                setMobileOpen(true);
-              } else {
-                setAuthModalOpen(true);
+          {/* Right Actions & Profile */}
+          <div className="hidden lg:flex items-center gap-3">
+            <Link
+              href="/consultation"
+              className="pill-button px-4 py-2 rounded-full bg-[#1c194d] text-white text-xs font-extrabold shadow-md shadow-[#1c194d]/15"
+            >
+              {language === "en" ? "Start Care" : "Tangira Ubufasha"}
+            </Link>
+
+            {/* Quick Language Toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="pill-button p-2 rounded-full bg-[#f7f6fc] border border-[#edeaf5] hover:border-[#edeaf5] hover:bg-[#edeaf5]/30 text-[#2d1c66] transition flex items-center gap-1.5"
+              onMouseEnter={() =>
+                readItem("Change language", "Guhindura ururimi")
               }
-            }}
-            className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[#7c3aed] flex items-center justify-center"
-            title={authUser ? `@${authUser.username}` : 'Sign In / Register'}
-          >
-            <User className="w-5 h-5" />
-          </button>
+            >
+              <Languages className="w-4 h-4 text-[#ec4899]" />
+              <span className="text-[10px] font-bold">
+                {language.toUpperCase()}
+              </span>
+            </button>
 
-          <button 
-            onClick={toggleLanguage}
-            className="px-2.5 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[10px] font-bold text-[#2d1c66]"
-          >
-            {language.toUpperCase()}
-          </button>
-          
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[#2d1c66]"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+            {/* Quick Size Toggle */}
+            <button
+              onClick={() =>
+                setFontSize(
+                  fontSize === "base"
+                    ? "lg"
+                    : fontSize === "lg"
+                      ? "xl"
+                      : fontSize === "xl"
+                        ? "sm"
+                        : "base",
+                )
+              }
+              className="pill-button p-2 rounded-full bg-[#f7f6fc] border border-[#edeaf5] hover:bg-[#edeaf5]/30 text-[#625985] transition"
+              title="Adjust text size"
+              onMouseEnter={() =>
+                readItem("Adjust text size", "Guhindura ingano y’inyuguti")
+              }
+            >
+              <Type className="w-4 h-4" />
+            </button>
+
+            {/* Account indicator / Login trigger */}
+            {authUser ? (
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-200 cursor-pointer"
+                  title={`Logged in as ${authUser.username} (${authUser.role})`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
+                    {authUser.username.substring(0, 2).toUpperCase()}
+                  </div>
+                  <span className="text-[10px] font-black text-purple-900">
+                    @{authUser.username}
+                  </span>
+                  {authUser.role === "admin" && (
+                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                  )}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="pill-button p-2 rounded-full bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition"
+                  title="Log out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="pill-button px-3.5 py-1.5 rounded-full bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs transition shadow-sm"
+                >
+                  {language === "en"
+                    ? "Sign In / Register"
+                    : "Injira / Iyandikishe"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu action controls */}
+          <div className="lg:hidden flex items-center gap-2">
+            {/* Mobile User Profile / Login trigger icon */}
+            <button
+              onClick={() => {
+                if (authUser) {
+                  setMobileOpen(true);
+                } else {
+                  setAuthModalOpen(true);
+                }
+              }}
+              className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[#7c3aed] flex items-center justify-center"
+              title={authUser ? `@${authUser.username}` : "Sign In / Register"}
+            >
+              <User className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={toggleLanguage}
+              className="px-2.5 py-1.5 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[10px] font-bold text-[#2d1c66]"
+            >
+              {language.toUpperCase()}
+            </button>
+
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 rounded-xl bg-[#f7f6fc] border border-[#edeaf5] text-[#2d1c66]"
+            >
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-white/95 flex flex-col p-6 pt-20 justify-between animate-fade-in">
-          <button 
+          <button
             onClick={() => setMobileOpen(false)}
             className="absolute top-4 right-4 p-2 rounded-xl bg-[#f7f6fc] text-[#2d1c66] border border-[#edeaf5]"
           >
@@ -259,12 +297,19 @@ export default function ClientShell({ children }: { children: React.ReactNode })
                     {authUser.username.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-black text-[#2d1c66]">@{authUser.username}</p>
-                    <p className="text-[10px] text-[#7c3aed] font-bold uppercase">{authUser.role}</p>
+                    <p className="text-xs font-black text-[#2d1c66]">
+                      @{authUser.username}
+                    </p>
+                    <p className="text-[10px] text-[#7c3aed] font-bold uppercase">
+                      {authUser.role}
+                    </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => { setMobileOpen(false); handleLogout(); }}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
                   className="px-3 py-1.5 rounded-xl bg-red-100 text-red-600 text-xs font-bold hover:bg-red-200 transition"
                 >
                   Log Out
@@ -272,17 +317,24 @@ export default function ClientShell({ children }: { children: React.ReactNode })
               </div>
             ) : (
               <button
-                onClick={() => { setMobileOpen(false); setAuthModalOpen(true); }}
+                onClick={() => {
+                  setMobileOpen(false);
+                  setAuthModalOpen(true);
+                }}
                 className="w-full py-3 rounded-2xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition"
               >
                 <User className="w-4 h-4" />
-                <span>{language === 'en' ? 'Sign In / Register' : 'Injira / Iyandikishe'}</span>
+                <span>
+                  {language === "en"
+                    ? "Sign In / Register"
+                    : "Injira / Iyandikishe"}
+                </span>
               </button>
             )}
 
             <nav className="space-y-2">
-              {menuItems.map(item => {
-                const label = language === 'en' ? item.labelEn : item.labelRw;
+              {menuItems.map((item) => {
+                const label = language === "en" ? item.labelEn : item.labelRw;
                 const active = pathname === item.href;
                 return (
                   <Link
@@ -290,7 +342,9 @@ export default function ClientShell({ children }: { children: React.ReactNode })
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold ${
-                      active ? 'bg-[#7c3aed]/5 text-[#7c3aed] border border-[#7c3aed]/10' : 'text-[#625985]'
+                      active
+                        ? "bg-[#7c3aed]/5 text-[#7c3aed] border border-[#7c3aed]/10"
+                        : "text-[#625985]"
                     }`}
                   >
                     {label}
@@ -301,91 +355,162 @@ export default function ClientShell({ children }: { children: React.ReactNode })
           </div>
 
           <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-center space-y-3">
-            <p className="text-xs font-bold text-red-600 uppercase">{language === 'en' ? 'Helpline Assistance' : 'Ubutabazi bw’Imirongo'}</p>
+            <p className="text-xs font-bold text-red-600 uppercase">
+              {language === "en"
+                ? "Helpline Assistance"
+                : "Ubutabazi bw’Imirongo"}
+            </p>
             <div className="flex gap-2 justify-center">
-              <a href="tel:114" className="px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs shadow-sm">Call 114</a>
-              <a href="tel:112" className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs">Call 112</a>
+              <a
+                href="tel:114"
+                className="px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs shadow-sm"
+              >
+                Call 114
+              </a>
+              <a
+                href="tel:112"
+                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs"
+              >
+                Call 112
+              </a>
             </div>
           </div>
         </div>
       )}
 
       {/* Main Page Layout Wrapper */}
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 overflow-y-auto min-h-[calc(100vh-14rem)]">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:px-8 md:py-8 overflow-y-auto min-h-[calc(100vh-14rem)]">
         {children}
       </main>
 
       {/* Audit Solid Dark-Navy Footer */}
       <footer className="w-full bg-[#12103e] text-[#a8a5d4] py-12 px-4 md:px-8 border-t border-slate-900 mt-auto">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Trademark & Mission */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#ec4899] flex items-center justify-center">
-                <Heart className="w-4 h-4 text-white fill-white/10" />
+        <div className="max-w-6xl mx-auto space-y-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#ec4899] flex items-center justify-center shadow-lg shadow-[#7c3aed]/20">
+                  <Heart className="w-4 h-4 text-white fill-white/10" />
+                </div>
+                <span className="font-extrabold text-sm text-white tracking-wider">
+                  PULSE 360
+                </span>
               </div>
-              <span className="font-extrabold text-sm text-white tracking-wider">PULSE 360</span>
+              <p className="text-[11px] leading-relaxed text-[#8c88bf] max-w-md">
+                Safe. anonymous. accessible. Pulse360 gives young people in
+                Rwanda a calmer way to get trusted health guidance, virtual
+                care, and urgent support.
+              </p>
+              <div className="flex flex-wrap gap-2 text-[10px] font-bold">
+                <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white">
+                  24/7 support
+                </span>
+                <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white">
+                  Anonymous sessions
+                </span>
+                <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white">
+                  Clinic routing
+                </span>
+              </div>
             </div>
-            <p className="text-[11px] leading-relaxed text-[#8c88bf] max-w-sm">
-              Safe. Anonymous. Accessible. Anytime. Providing Rwandans and youth across Africa with judgment-free health companion services.
+
+            <div className="lg:col-span-4 grid grid-cols-2 gap-4 text-[11px] font-bold text-[#b4b1e2]">
+              <Link href="/" className="hover:text-white transition">
+                {language === "en" ? "Home" : "Ahabanza"}
+              </Link>
+              <Link href="/learn" className="hover:text-white transition">
+                {language === "en" ? "Learn" : "Soma"}
+              </Link>
+              <Link href="/ask" className="hover:text-white transition">
+                {language === "en" ? "Ask" : "Baza"}
+              </Link>
+              <Link
+                href="/consultation"
+                className="hover:text-white transition"
+              >
+                {language === "en" ? "Consultation" : "Umujyanama"}
+              </Link>
+              <Link href="/clinics" className="hover:text-white transition">
+                {language === "en" ? "Find a Clinic" : "Shaka Ivuriro"}
+              </Link>
+              <a href="tel:114" className="hover:text-white transition">
+                {language === "en"
+                  ? "Emergency Contacts"
+                  : "Ubutabazi Buhishwe"}
+              </a>
+            </div>
+
+            <div className="lg:col-span-3 p-4 rounded-3xl bg-white/5 border border-white/10 space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-purple-200">
+                Need urgent help?
+              </p>
+              <p className="text-[11px] leading-relaxed text-[#b4b1e2]">
+                Reach national support lines immediately if you or someone near
+                you is in danger.
+              </p>
+              <div className="flex gap-2">
+                <a
+                  href="tel:114"
+                  className="flex-1 rounded-2xl bg-white text-[#12103e] py-2.5 text-center text-xs font-extrabold"
+                >
+                  Call 114
+                </a>
+                <a
+                  href="tel:112"
+                  className="flex-1 rounded-2xl bg-[#7c3aed] text-white py-2.5 text-center text-xs font-extrabold"
+                >
+                  Call 112
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-[#23205c]/55 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] text-[#8c88bf]">
+            <p>
+              © {new Date().getFullYear()} Pulse360 Platform. All rights
+              reserved.
             </p>
-          </div>
 
-          {/* Site Menu Links */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2.5 md:col-span-2 items-center md:justify-end text-[11px] font-bold text-[#b4b1e2]">
-            <Link href="/" className="hover:text-white transition">{language === 'en' ? 'Privacy Policy' : 'Ubwizigame'}</Link>
-            <Link href="/" className="hover:text-white transition">{language === 'en' ? 'Terms of Use' : 'Amategeko'}</Link>
-            <a href="tel:114" className="hover:text-white transition">{language === 'en' ? 'Emergency Contacts' : 'Ubutabazi Buhishwe'}</a>
-            <Link href="/" className="hover:text-white transition">{language === 'en' ? 'About Us' : 'Ibitwimye'}</Link>
-            <Link href="/" className="hover:text-white transition">{language === 'en' ? 'Contact Us' : 'Twandikire'}</Link>
-          </div>
-        </div>
-
-        {/* Bottom socials & legal */}
-        <div className="max-w-6xl mx-auto border-t border-[#23205c]/55 pt-6 mt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] text-[#8c88bf]">
-          <p>© {new Date().getFullYear()} Pulse360 Platform. All rights reserved.</p>
-          
-          {/* Social media grid */}
-          <div className="flex items-center gap-4">
-            <a 
-              href="https://www.facebook.com/share/1Bp3sQ9oBv/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
-              title="Pulse360 Facebook"
-            >
-              <Facebook className="w-4 h-4" />
-            </a>
-            <a 
-              href="https://www.instagram.com/rc.pulse360?igsh=MWU3d3p1ZDNhOWtqbw==" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
-              title="Pulse360 Instagram"
-            >
-              <Instagram className="w-4 h-4" />
-            </a>
-            <a 
-              href="https://x.com/pulse360v" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
-              title="Pulse360 X (Twitter)"
-            >
-              <Twitter className="w-4 h-4" />
-            </a>
+            {/* Social media grid */}
+            <div className="flex items-center gap-4">
+              <a
+                href="https://www.facebook.com/share/1Bp3sQ9oBv/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+                title="Pulse360 Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="https://www.instagram.com/rc.pulse360?igsh=MWU3d3p1ZDNhOWtqbw=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+                title="Pulse360 Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://x.com/pulse360v"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition p-1.5 rounded-lg bg-[#23205c]/40 hover:bg-[#7c3aed]/10"
+                title="Pulse360 X (Twitter)"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
 
       {/* Auth Modal Overlay */}
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={() => setAuthModalOpen(false)} 
-        onSuccess={(user) => setAuthUser(user)} 
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={(user) => setAuthUser(user)}
       />
-
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -68,12 +69,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       try {
-        const { results } = await db.prepare('SELECT * FROM Session ORDER BY lastActive DESC LIMIT 30').all();
+        const { results } = await db.prepare('SELECT * FROM Session ORDER BY lastActive DESC LIMIT 30').all<Record<string, unknown>>();
         if (results && results.length > 0) {
           const sessionsParsed = results.map((s: Record<string, unknown>) => ({
             id: s.id,
@@ -114,8 +114,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: 'Session ID required' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       await db.prepare('DELETE FROM Session WHERE id = ?').bind(id).run();

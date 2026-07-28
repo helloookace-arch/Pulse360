@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../lib/db';
 
 export const runtime = 'edge';
+
+type StoryRecord = {
+  id?: string;
+  _id?: string;
+  content: string;
+  category: string;
+  likes: number;
+  status: string;
+  districtHash: string;
+  createdAt: string;
+};
 
 const fallbackStories = [
   {
@@ -25,19 +37,21 @@ const fallbackStories = [
 
 export async function GET() {
   try {
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
-    let stories = fallbackStories;
+    const db = getD1();
+    let stories: StoryRecord[] = fallbackStories;
 
     if (db) {
-      const { results } = await db.prepare("SELECT * FROM Story WHERE status = 'approved' ORDER BY createdAt DESC").all();
+      const { results } = await db
+        .prepare("SELECT * FROM Story WHERE status = 'approved' ORDER BY createdAt DESC")
+        .all<Record<string, unknown>>();
       if (results && results.length > 0) {
-        stories = results.map((s: unknown) => ({ ...s, _id: s.id }));
+        stories = results.map((s) => ({ ...s, _id: s.id })) as StoryRecord[];
       }
     }
 
     return NextResponse.json({ success: true, stories });
-  } catch {
+  } catch (error: unknown) {
+    console.warn('Stories fetch fallback:', error);
     return NextResponse.json({ success: true, stories: fallbackStories });
   }
 }
@@ -73,8 +87,7 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString()
     };
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
     if (db) {
       await db.prepare(
         'INSERT INTO Story (id, content, category, likes, status, districtHash) VALUES (?, ?, ?, ?, ?, ?)'
@@ -82,9 +95,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, story: newStory });
-  } catch {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Story submission failed';
     return NextResponse.json(
-      { success: false, error: error.message || 'Story submission failed' },
+      { success: false, error: message },
       { status: 500 }
     );
   }

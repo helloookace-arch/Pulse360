@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
+
+type ClinicRecord = {
+  id?: string;
+  _id?: string;
+  name: string;
+  lat: number;
+  lng: number;
+  address: string;
+  phone: string;
+  services: string[] | string;
+  hours: string;
+  district: string;
+  distance?: number | null;
+};
 
 function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Radius of the earth in km
@@ -67,18 +82,17 @@ export async function GET(request: Request) {
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
-    let clinics = fallbackClinics;
+    const db = getD1();
+    let clinics: ClinicRecord[] = fallbackClinics;
 
     if (db) {
-      const { results } = await db.prepare('SELECT * FROM Clinic').all();
+      const { results } = await db.prepare('SELECT * FROM Clinic').all<Record<string, unknown>>();
       if (results && results.length > 0) {
-        clinics = results.map((c: unknown) => ({
+        clinics = results.map((c) => ({
           ...c,
           _id: c.id,
           services: typeof c.services === 'string' ? JSON.parse(c.services) : c.services
-        }));
+        })) as ClinicRecord[];
       }
     }
 
@@ -95,7 +109,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, clinics: clinics.map(c => ({ ...c, distance: null })) });
-  } catch {
+  } catch (error: unknown) {
+    console.warn('Nearby clinics fallback:', error);
     return NextResponse.json({ success: true, clinics: fallbackClinics });
   }
 }

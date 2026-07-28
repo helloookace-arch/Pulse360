@@ -6,6 +6,15 @@ import ClientShell from "@/components/ClientShell";
 export const metadata: Metadata = {
   title: "Pulse360 - AI Digital Health Companion",
   description: "Anonymous digital health companion for young people in Rwanda and across Africa. Confidential counseling, reproductive health information, and clinic routing.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Pulse360 - AI Digital Health Companion",
+    description: "Anonymous digital health companion for young people in Rwanda and across Africa.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({
@@ -14,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Load Leaflet CSS for mapping out of the box */}
         <link 

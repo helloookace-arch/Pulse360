@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -16,8 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Title, category, and body are required' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (!db) {
       return NextResponse.json({ success: false, error: 'Database binding unavailable' }, { status: 500 });
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
     const articleId = `art_${Date.now()}`;
     const tagsJson = JSON.stringify(Array.isArray(tags) ? tags : [tags]);
 
-    // @ts-expect-error - D1 prepare API
     await db.prepare(
       'INSERT INTO Article (id, title, category, body, tags, language, readingTime, thumbnail) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(

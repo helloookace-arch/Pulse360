@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -10,24 +11,35 @@ const DEFAULT_PUBLIC_SETTINGS = {
   broadcastNotice: 'Welcome to Pulse360! 24/7 Confidential Youth Health & Psychological Support in Rwanda.'
 };
 
+type PublicSettingsShape = typeof DEFAULT_PUBLIC_SETTINGS;
+
+function applyPublicSettingValue(
+  settings: PublicSettingsShape,
+  key: string,
+  value: string
+) {
+  if (key === 'broadcastNotice') {
+    settings.broadcastNotice = value;
+    return;
+  }
+
+  if (key in settings) {
+    const booleanKey = key as Exclude<keyof PublicSettingsShape, 'broadcastNotice'>;
+    settings[booleanKey] = value === 'true';
+  }
+}
+
 export async function GET() {
   try {
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       try {
-        const { results } = await db.prepare('SELECT key, value FROM SystemSetting').all();
+        const { results } = await db.prepare('SELECT key, value FROM SystemSetting').all<{ key: string; value: string }>();
         if (results && results.length > 0) {
           const settingsObj = { ...DEFAULT_PUBLIC_SETTINGS };
-          results.forEach((row: { key: string; value: string }) => {
-            if (row.key === 'broadcastNotice') {
-              // @ts-expect-error - dynamic key
-              settingsObj[row.key] = row.value;
-            } else {
-              // @ts-expect-error - dynamic boolean key
-              settingsObj[row.key] = row.value === 'true';
-            }
+          results.forEach((row) => {
+            applyPublicSettingValue(settingsObj, row.key, row.value);
           });
           return NextResponse.json({ success: true, settings: settingsObj });
         }
@@ -37,7 +49,8 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true, settings: DEFAULT_PUBLIC_SETTINGS });
-  } catch {
+  } catch (error: unknown) {
+    console.warn('Public settings fallback:', error);
     return NextResponse.json({ success: true, settings: DEFAULT_PUBLIC_SETTINGS });
   }
 }

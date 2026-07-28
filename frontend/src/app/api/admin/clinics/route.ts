@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -57,11 +58,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
-      const { results } = await db.prepare('SELECT * FROM Clinic ORDER BY name ASC').all();
+      const { results } = await db.prepare('SELECT * FROM Clinic ORDER BY name ASC').all<Record<string, unknown>>();
       if (results && results.length > 0) {
         const parsed = results.map((c: Record<string, unknown>) => ({
           ...c,
@@ -93,8 +93,7 @@ export async function POST(request: Request) {
     const clinicId = `clinic_${Date.now()}`;
     const servicesJson = JSON.stringify(Array.isArray(services) ? services : [services]);
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       await db.prepare(
@@ -134,8 +133,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Clinic ID required' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
     const servicesJson = JSON.stringify(Array.isArray(services) ? services : [services]);
 
     if (db) {
@@ -165,8 +163,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: 'Clinic ID required' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       await db.prepare('DELETE FROM Clinic WHERE id = ?').bind(id).run();

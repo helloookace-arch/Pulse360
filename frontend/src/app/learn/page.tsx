@@ -214,6 +214,7 @@ export default function EducationHubPage() {
               >
                 {/* Thumbnail */}
                 <div className="h-44 w-full relative overflow-hidden bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={art.thumbnail} 
                     alt={art.title} 
@@ -311,6 +312,7 @@ export default function EducationHubPage() {
               </div>
 
               <div className="h-64 w-full rounded-2xl overflow-hidden mb-6 bg-slate-100 border border-[#edeaf5]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={selectedArticle.thumbnail} alt={selectedArticle.title} className="w-full h-full object-cover" />
               </div>
 
@@ -343,6 +345,7 @@ export default function EducationHubPage() {
                     className="flex gap-3 p-3 rounded-xl bg-[#f7f6fc]/60 border border-[#edeaf5] hover:border-[#7c3aed]/30 transition cursor-pointer group"
                   >
                     <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-[#edeaf5]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={rel.thumbnail} alt={rel.title} className="w-full h-full object-cover" />
                     </div>
                     <div>

@@ -4,6 +4,10 @@ import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
+type ExistingUserRecord = {
+  id: string;
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -23,9 +27,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Database binding unavailable. Please ensure D1 binding "DB" is attached in Cloudflare Pages.' }, { status: 500 });
     }
 
-    // Check existing user
-    // @ts-expect-error - D1 prepare API
-    const existing = await db.prepare('SELECT id FROM User WHERE email = ? OR username = ?').bind(email, username).first();
+    const existing = await db
+      .prepare('SELECT id FROM User WHERE email = ? OR username = ?')
+      .bind(email, username)
+      .first<ExistingUserRecord>();
     if (existing) {
       return NextResponse.json({ success: false, error: 'Username or email already exists' }, { status: 400 });
     }
@@ -37,7 +42,6 @@ export async function POST(request: Request) {
     // Assign admin role if secret key matches or if email ends with @pulse360.admin
     const role = (adminKey && adminKey === 'pulse360_admin_passkey_2026') ? 'admin' : 'user';
 
-    // @ts-expect-error - D1 prepare API
     await db.prepare('INSERT INTO User (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(userId, username, email, passwordHash, salt, role)
       .run();

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -49,12 +50,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       try {
-        const { results } = await db.prepare('SELECT * FROM CrisisEvent ORDER BY createdAt DESC').all();
+        const { results } = await db.prepare('SELECT * FROM CrisisEvent ORDER BY createdAt DESC').all<Record<string, unknown>>();
         if (results && results.length > 0) {
           return NextResponse.json({ success: true, crisisEvents: results });
         }
@@ -82,8 +82,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'ID and action are required' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       if (action === 'escalate') {

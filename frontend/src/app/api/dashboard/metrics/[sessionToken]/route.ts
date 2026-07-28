@@ -1,26 +1,30 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../../../lib/db';
 
 export const runtime = 'edge';
 
+type RouteContext = {
+  params: Promise<{ sessionToken: string }>;
+};
+
 export async function GET(
   request: Request,
-  { params }: { params: { sessionToken: string } }
+  { params }: RouteContext
 ) {
   try {
-    const { sessionToken } = params;
+    const { sessionToken } = await params;
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
     let questionsAsked = 0;
     let consultationsCount = 0;
     let crisisRecorded = false;
 
     if (db) {
-      const session = await db.prepare('SELECT id FROM Session WHERE sessionToken = ?').bind(sessionToken).first();
-      if (session) {
-        const msgCount = await db.prepare("SELECT COUNT(*) as count FROM Message WHERE sessionId = ? AND role = 'user'").bind(session.id).first();
-        const consultCount = await db.prepare('SELECT COUNT(*) as count FROM Consultation WHERE sessionId = ?').bind(session.id).first();
-        const crisisCount = await db.prepare('SELECT COUNT(*) as count FROM CrisisEvent WHERE sessionId = ?').bind(session.id).first();
+      const session = await db.prepare('SELECT id FROM Session WHERE sessionToken = ?').bind(sessionToken).first<{ id: string }>();
+      if (session?.id) {
+        const msgCount = await db.prepare("SELECT COUNT(*) as count FROM Message WHERE sessionId = ? AND role = 'user'").bind(session.id).first<{ count?: number }>();
+        const consultCount = await db.prepare('SELECT COUNT(*) as count FROM Consultation WHERE sessionId = ?').bind(session.id).first<{ count?: number }>();
+        const crisisCount = await db.prepare('SELECT COUNT(*) as count FROM CrisisEvent WHERE sessionId = ?').bind(session.id).first<{ count?: number }>();
 
         questionsAsked = msgCount?.count || 0;
         consultationsCount = consultCount?.count || 0;
@@ -46,7 +50,8 @@ export async function GET(
       wellbeingScores,
       crisisRecorded
     });
-  } catch {
+  } catch (error: unknown) {
+    console.warn('Dashboard metrics fallback:', error);
     return NextResponse.json({
       success: true,
       metrics: {

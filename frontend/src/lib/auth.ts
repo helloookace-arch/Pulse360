@@ -1,8 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'pulse360_super_secret_jwt_key_2026_rwanda'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set.');
+}
+
+const JWT_SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export interface UserPayload {
   userId: string;

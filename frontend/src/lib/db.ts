@@ -1,12 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { CloudflareEnv, D1DatabaseLike } from "../types/cloudflare";
+
 /**
- * Safely retrieve Cloudflare D1 database binding across Edge Runtime / Pages environment contexts
+ * Safely retrieve the Cloudflare D1 binding across Edge Runtime / Pages contexts.
  */
-export function getD1(): any {
-  if (typeof process !== 'undefined' && (process.env as any)?.DB) {
-    return (process.env as any).DB;
+export function getD1(): D1DatabaseLike | null {
+  if (typeof process !== "undefined" && process.env?.DB) {
+    return process.env.DB;
   }
-  const g = globalThis as any;
+
+  const g = globalThis as typeof globalThis & CloudflareEnv;
   if (g.DB) return g.DB;
   if (g.__env__?.DB) return g.__env__.DB;
   if (g.env?.DB) return g.env.DB;

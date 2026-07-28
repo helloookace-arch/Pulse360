@@ -1,14 +1,15 @@
-import { CloudflareEnv } from '../types/cloudflare';
+import { CloudflareEnv } from "../types/cloudflare";
 
 // Helper to access Cloudflare KV binding dynamically across Pages Functions
 export function getKV(): CloudflareEnv['PULSE360_KV'] | null {
-  // @ts-expect-error - process might not be defined in edge
   if (typeof process !== 'undefined' && process.env && process.env.PULSE360_KV) {
     return process.env.PULSE360_KV as CloudflareEnv['PULSE360_KV'];
   }
-  // @ts-expect-error - globalThis properties vary in edge
-  if (typeof globalThis !== 'undefined' && ('PULSE360_KV' in globalThis)) {
-    return (globalThis as { PULSE360_KV: CloudflareEnv['PULSE360_KV'] }).PULSE360_KV;
+  if (typeof globalThis !== "undefined") {
+    const g = globalThis as typeof globalThis & CloudflareEnv;
+    if (g.PULSE360_KV) {
+      return g.PULSE360_KV;
+    }
   }
   return null;
 }

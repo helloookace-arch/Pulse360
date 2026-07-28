@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -10,15 +11,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (!db) {
       return NextResponse.json({ success: false, error: 'Database binding unavailable' }, { status: 500 });
     }
 
-    // @ts-expect-error - D1 prepare API
-    const { results } = await db.prepare('SELECT * FROM Story ORDER BY createdAt DESC').all();
+    const { results } = await db.prepare('SELECT * FROM Story ORDER BY createdAt DESC').all<Record<string, unknown>>();
 
     return NextResponse.json({ success: true, stories: results || [] });
   } catch (err: unknown) {
@@ -39,14 +38,12 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid story ID or status' }, { status: 400 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (!db) {
       return NextResponse.json({ success: false, error: 'Database binding unavailable' }, { status: 500 });
     }
 
-    // @ts-expect-error - D1 prepare API
     await db.prepare('UPDATE Story SET status = ? WHERE id = ?').bind(status, id).run();
 
     return NextResponse.json({ success: true, message: `Story status updated to ${status}` });

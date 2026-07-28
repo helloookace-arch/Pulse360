@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '../../../../lib/auth';
+import { getD1 } from '../../../../lib/db';
 
 export const runtime = 'edge';
 
@@ -11,6 +12,24 @@ const DEFAULT_SETTINGS = {
   broadcastNotice: 'Welcome to Pulse360! 24/7 Confidential Youth Health & Psychological Support in Rwanda.'
 };
 
+type SettingsShape = typeof DEFAULT_SETTINGS;
+
+function applySettingValue(
+  settings: SettingsShape,
+  key: string,
+  value: string
+) {
+  if (key === 'broadcastNotice') {
+    settings.broadcastNotice = value;
+    return;
+  }
+
+  if (key in settings) {
+    const booleanKey = key as Exclude<keyof SettingsShape, 'broadcastNotice'>;
+    settings[booleanKey] = value === 'true';
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const user = await getAuthUser(request);
@@ -18,22 +37,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       try {
-        const { results } = await db.prepare('SELECT key, value FROM SystemSetting').all();
+        const { results } = await db.prepare('SELECT key, value FROM SystemSetting').all<{ key: string; value: string }>();
         if (results && results.length > 0) {
           const settingsObj = { ...DEFAULT_SETTINGS };
-          results.forEach((row: { key: string; value: string }) => {
-            if (row.key === 'broadcastNotice') {
-              // @ts-expect-error - dynamic key assignment
-              settingsObj[row.key] = row.value;
-            } else {
-              // @ts-expect-error - dynamic boolean key assignment
-              settingsObj[row.key] = row.value === 'true';
-            }
+          results.forEach((row) => {
+            applySettingValue(settingsObj, row.key, row.value);
           });
           return NextResponse.json({ success: true, settings: settingsObj });
         }
@@ -58,8 +70,7 @@ export async function POST(request: Request) {
 
     const settings = await request.json();
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
+    const db = getD1();
 
     if (db) {
       for (const [key, val] of Object.entries(settings)) {

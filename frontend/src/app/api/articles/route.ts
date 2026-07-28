@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server';
+import { getD1 } from '../../../lib/db';
 
 export const runtime = 'edge';
+
+type ArticleRecord = {
+  id?: string;
+  _id?: string;
+  title: string;
+  category: string;
+  body: string;
+  tags: string[] | string;
+  language: string;
+  readingTime: string;
+  thumbnail: string;
+  publishedAt: string;
+};
 
 const fallbackArticles = [
   {
@@ -67,17 +81,28 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
     const language = searchParams.get('language');
 
-    // @ts-expect-error - Edge runtime types
-    const db = process.env.DB || (globalThis as unknown as { DB?: unknown }).DB;
-    let articles = fallbackArticles;
+    const db = getD1();
+    let articles: ArticleRecord[] = fallbackArticles;
 
     if (db) {
-      const { results } = await db.prepare('SELECT * FROM Article').all();
+      const { results } = await db.prepare('SELECT * FROM Article').all<Record<string, unknown>>();
       if (results && results.length > 0) {
-        articles = results.map((a: unknown) => ({
-          ...a,
-          _id: a.id,
-          tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags
+        articles = results.map((a) => ({
+          id: typeof a.id === "string" ? a.id : undefined,
+          _id: typeof a.id === "string" ? a.id : undefined,
+          title: String(a.title || ""),
+          category: String(a.category || ""),
+          body: String(a.body || ""),
+          tags:
+            typeof a.tags === "string"
+              ? (JSON.parse(a.tags) as string[])
+              : Array.isArray(a.tags)
+                ? (a.tags as string[])
+                : [],
+          language: String(a.language || "English"),
+          readingTime: String(a.readingTime || ""),
+          thumbnail: String(a.thumbnail || ""),
+          publishedAt: String(a.publishedAt || a.createdAt || new Date().toISOString()),
         }));
       }
     }
@@ -100,7 +125,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, articles });
-  } catch {
+  } catch (error: unknown) {
+    console.warn('Articles fetch fallback:', error);
     return NextResponse.json({ success: true, articles: fallbackArticles });
   }
 }
